@@ -4,6 +4,7 @@ import { CATEGORIES, TRANSPORT } from "@/lib/categories";
 import { fmtDuration, toMin } from "@/lib/time";
 import type { Item } from "@/lib/types";
 import { AttachmentList } from "./Attachments";
+import { BagLine } from "./bags";
 import { CategoryIcon, IconDirections, IconLink, IconPin } from "./Icons";
 
 export const directionsUrl = (item: Item) => {
@@ -25,9 +26,11 @@ export function ItemActions({ item }: { item: Item }) {
   const dir = directionsUrl(item);
   const place = placeUrl(item);
   const files = item.files ?? [];
-  if (!dir && !item.links.length && !files.length) return null;
+  const bags = item.bags ?? [];
+  if (!dir && !item.links.length && !files.length && !bags.length) return null;
   return (
     <>
+      {bags.length > 0 && <BagLine bagIds={bags} />}
       {files.length > 0 && <AttachmentList files={files} />}
       <div className="actions" onClick={(e) => e.stopPropagation()}>
         {dir && (

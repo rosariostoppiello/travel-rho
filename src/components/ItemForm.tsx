@@ -6,6 +6,7 @@ import { docId } from "@/lib/id";
 import { dayLabel, daysBetween } from "@/lib/time";
 import type { Item, TransportMode } from "@/lib/types";
 import { AttachmentEditor, dropRemoved } from "./Attachments";
+import { BagIcon, sortBags } from "./bags";
 import { CategoryIcon, IconClose, IconPlus } from "./Icons";
 import { PlacePicker } from "./PlacePicker";
 import { Sheet } from "./Sheet";
@@ -208,6 +209,28 @@ export function ItemForm({ item, onClose }: { item: Item | null; onClose: () => 
           </button>
         </div>
       </div>
+
+      {bundle.bags.length > 0 && (
+        <div className="field">
+          <span>Llevar</span>
+          <div className="chips wrap">
+            {sortBags(bundle.bags).map((b) => {
+              const on = draft.bags?.includes(b.id);
+              return (
+                <button
+                  key={b.id}
+                  type="button"
+                  className={`chip ${on ? "on" : ""}`}
+                  onClick={() => set({ bags: on ? draft.bags!.filter((x) => x !== b.id) : [...(draft.bags ?? []), b.id] })}
+                >
+                  <BagIcon name={b.name} size={14} /> {b.name}
+                </button>
+              );
+            })}
+          </div>
+          <p className="hint">Cuando se acerque la actividad, en Ahora aparece la lista para tildar antes de salir.</p>
+        </div>
+      )}
 
       <div className="field">
         <span>Archivos</span>

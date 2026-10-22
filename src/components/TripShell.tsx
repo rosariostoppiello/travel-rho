@@ -10,7 +10,7 @@ const TABS = [
   { href: "", label: "Ahora", Icon: IconNow },
   { href: "/plan", label: "Plan", Icon: IconPlan },
   { href: "/mapa", label: "Mapa", Icon: IconMap },
-  { href: "/valija", label: "Valija", Icon: IconBag },
+  { href: "/valija", label: "Bolsos", Icon: IconBag },
   { href: "/mas", label: "Más", Icon: IconMore },
 ];
 

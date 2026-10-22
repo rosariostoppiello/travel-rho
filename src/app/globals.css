@@ -1606,3 +1606,112 @@ main > .stack,
   text-align: center;
   max-width: 200px;
 }
+
+/* ---------- Bolsos ---------- */
+
+.bag-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px var(--gutter) 14px;
+  scrollbar-width: none;
+}
+.bag-strip::-webkit-scrollbar {
+  display: none;
+}
+.bag-card {
+  flex: 0 0 136px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 11px 12px 12px;
+  border-radius: var(--r);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  text-align: left;
+}
+.bag-card .bag-icon {
+  height: 20px;
+  color: var(--ink-2);
+}
+.bag-card strong {
+  margin-top: 6px;
+  font-size: 14.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bag-card small {
+  font-size: 12px;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bag-card .bar {
+  margin-top: 8px;
+}
+.bag-card.on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+.bag-card.on .bag-icon,
+.bag-card.on small {
+  color: var(--bg);
+  opacity: 0.75;
+}
+.bag-card.on .bar {
+  background: rgb(127 127 127 / 0.35);
+}
+.bag-card.on .bar i {
+  background: var(--bg);
+}
+.bag-card.add {
+  flex-basis: 104px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-style: dashed;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+.bag-title {
+  width: 100%;
+}
+.bag-title svg {
+  color: var(--ink-2);
+}
+.pack-empty {
+  padding: 4px 0 8px;
+}
+.pack-summary .icon-btn.boxed {
+  align-self: center;
+}
+.grid-qty {
+  display: grid;
+  grid-template-columns: 1fr 76px;
+  gap: 10px;
+}
+.bag-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.bag-line .pill .mono {
+  font-weight: 500;
+  opacity: 0.7;
+}
+.bag-line .pill.ready {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.ticket .bag-line .pill.ready,
+.now-card .bag-line .pill.ready {
+  background: rgb(127 127 127 / 0.22);
+  color: inherit;
+}

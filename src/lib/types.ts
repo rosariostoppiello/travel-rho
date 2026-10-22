@@ -55,15 +55,24 @@ export interface Item {
   transport?: { mode: TransportMode; from?: string; to?: string };
   links: Link[];
   files?: Attachment[];
+  bags?: string[]; // bolsos para llevar a esta actividad
   notes?: string;
   cost?: string;
   updatedBy?: string;
   updatedAt?: number;
 }
 
+export interface Bag {
+  id: string;
+  name: string;
+  who?: string; // sin dueño = compartido
+  order: number;
+}
+
 export interface PackItem {
   id: string;
-  list: string;
+  bag?: string; // id del bolso; sin bolso = "Sin bolso"
+  list: string; // de versiones anteriores; ya no se usa para agrupar
   text: string;
   qty?: number;
   packed: boolean;
@@ -103,9 +112,10 @@ export interface TripBundle {
   trip: Trip;
   items: Item[];
   packing: PackItem[];
+  bags: Bag[];
   expenses: Expense[];
   notes: Note[];
 }
 
-export const COLLECTIONS = ["items", "packing", "expenses", "notes"] as const;
+export const COLLECTIONS = ["items", "packing", "bags", "expenses", "notes"] as const;
 export type Collection = (typeof COLLECTIONS)[number];

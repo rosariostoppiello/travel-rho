@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ItemActions, ItemCard } from "@/components/ItemCard";
 import { ItemForm } from "@/components/ItemForm";
-import { IconArrow, IconCheck } from "@/components/Icons";
+import { BagChecklist } from "@/components/bags";
+import { IconArrow } from "@/components/Icons";
 import { useTrip } from "@/components/TripProvider";
 import { ars, useDolar } from "@/components/useDolar";
 import { describe, useWeather } from "@/components/useWeather";
@@ -16,7 +17,7 @@ const dayDiff = (a: string, b: string) =>
   Math.round((Date.parse(b + "T12:00:00Z") - Date.parse(a + "T12:00:00Z")) / 86400000);
 
 export default function NowPage() {
-  const { bundle, me, save } = useTrip();
+  const { bundle, me } = useTrip();
   const [now, setNow] = useState(nowInTrip);
   const [editing, setEditing] = useState<Item | null>(null);
   const { trip, items, packing } = bundle!;
@@ -53,10 +54,14 @@ export default function NowPage() {
   const mine = packing.filter((p) => !p.who || p.who === me);
   const packed = mine.filter((p) => p.packed).length;
 
-  const eventToday = scheduled.find((i) => i.day === now.day && i.category === "evento");
-  const concertList = packing
-    .filter((p) => /concierto|show|recital/i.test(p.list) && (!p.who || p.who === me))
-    .sort((a, b) => a.order - b.order);
+  // Bolsos a llevar: lo que está pasando y lo que arranca en las próximas 3 horas.
+  const soon = scheduled.filter(
+    (i) => i.bags?.length && (i === current || (i.day === now.day && toMin(i.start) > now.minutes && toMin(i.start) - now.minutes <= 180)),
+  );
+  const toCarry = soon.flatMap((i) =>
+    bundle!.bags.filter((b) => i.bags!.includes(b.id)).map((bag) => ({ bag, item: i })),
+  );
+  const seen = new Set<string>();
 
   const todayIdx = days.indexOf(now.day);
   const w = weather[phase === "antes" ? trip.startDate : now.day];
@@ -89,7 +94,7 @@ export default function NowPage() {
         <section className="stack">
           <Link href={`/t/${trip.id}/valija`} className="card progress-card">
             <div className="grow">
-              <span className="eyebrow">Tu valija</span>
+              <span className="eyebrow">Tus bolsos</span>
               <strong>
                 {mine.length ? `${packed} de ${mine.length} cosas listas` : "Todavía no armaste la lista"}
               </strong>
@@ -127,20 +132,8 @@ export default function NowPage() {
             </Slot>
           )}
 
-          {eventToday && concertList.length > 0 && (
-            <div className="card checklist">
-              <span className="eyebrow">Para {eventToday.title}</span>
-              <ul>
-                {concertList.map((p) => (
-                  <li key={p.id}>
-                    <button className={`check ${p.packed ? "on" : ""}`} onClick={() => save("packing", { ...p, packed: !p.packed })}>
-                      <span className="box">{p.packed && <IconCheck size={14} />}</span>
-                      {p.text}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          {toCarry.map(({ bag, item }) =>
+            seen.has(bag.id) ? null : (seen.add(bag.id), <BagChecklist key={bag.id} bag={bag} forItem={item} />),
           )}
 
           {restToday.length > 0 && (

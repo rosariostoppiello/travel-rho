@@ -116,13 +116,14 @@ export async function getBundle(id: string): Promise<TripBundle | null> {
   const raw = await getTrip(id);
   if (!raw) return null;
   const trip = publicTrip(raw);
-  const [items, packing, expenses, notes] = await Promise.all(
-    (["items", "packing", "expenses", "notes"] as Collection[]).map((c) => db().hgetall(`trip:${id}:${c}`)),
+  const [items, packing, bags, expenses, notes] = await Promise.all(
+    (["items", "packing", "bags", "expenses", "notes"] as Collection[]).map((c) => db().hgetall(`trip:${id}:${c}`)),
   );
   return {
     trip,
     items: values(items),
     packing: values(packing),
+    bags: values(bags),
     expenses: values(expenses),
     notes: values(notes),
   };
