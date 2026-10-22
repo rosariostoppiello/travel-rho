@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { saveTrip } from "@/lib/store";
+import { publicTrip, saveTrip } from "@/lib/store";
 import { tripId } from "@/lib/id";
 import type { Trip } from "@/lib/types";
 
@@ -21,5 +21,5 @@ export async function POST(req: Request) {
     createdAt: Date.now(),
   };
   await saveTrip(trip);
-  return NextResponse.json(trip);
+  return NextResponse.json(publicTrip(trip));
 }

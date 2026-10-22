@@ -3,6 +3,7 @@
 import { CATEGORIES, TRANSPORT } from "@/lib/categories";
 import { fmtDuration, toMin } from "@/lib/time";
 import type { Item } from "@/lib/types";
+import { AttachmentList } from "./Attachments";
 import { CategoryIcon, IconDirections, IconLink, IconPin } from "./Icons";
 
 export const directionsUrl = (item: Item) => {
@@ -23,25 +24,29 @@ export const placeUrl = (item: Item) => {
 export function ItemActions({ item }: { item: Item }) {
   const dir = directionsUrl(item);
   const place = placeUrl(item);
-  if (!dir && !item.links.length) return null;
+  const files = item.files ?? [];
+  if (!dir && !item.links.length && !files.length) return null;
   return (
-    <div className="actions" onClick={(e) => e.stopPropagation()}>
-      {dir && (
-        <a className="pill" href={dir} target="_blank" rel="noreferrer">
-          <IconDirections size={15} /> Cómo llegar
-        </a>
-      )}
-      {place && (
-        <a className="pill" href={place} target="_blank" rel="noreferrer">
-          <IconPin size={15} /> Ver en Maps
-        </a>
-      )}
-      {item.links.map((l, i) => (
-        <a key={i} className="pill" href={l.url} target="_blank" rel="noreferrer">
-          <IconLink size={14} /> {l.label}
-        </a>
-      ))}
-    </div>
+    <>
+      {files.length > 0 && <AttachmentList files={files} />}
+      <div className="actions" onClick={(e) => e.stopPropagation()}>
+        {dir && (
+          <a className="pill" href={dir} target="_blank" rel="noreferrer">
+            <IconDirections size={15} /> Cómo llegar
+          </a>
+        )}
+        {place && (
+          <a className="pill" href={place} target="_blank" rel="noreferrer">
+            <IconPin size={15} /> Ver en Maps
+          </a>
+        )}
+        {item.links.map((l, i) => (
+          <a key={i} className="pill" href={l.url} target="_blank" rel="noreferrer">
+            <IconLink size={14} /> {l.label}
+          </a>
+        ))}
+      </div>
+    </>
   );
 }
 

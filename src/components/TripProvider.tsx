@@ -8,6 +8,8 @@ type Doc = { id: string };
 interface Ctx {
   bundle: TripBundle | null;
   error: string | null;
+  locked: string | null; // nombre del viaje si pide PIN
+  unlock: (pin: string) => Promise<string | null>;
   me: string | null;
   setMe: (name: string) => void;
   save: <T extends Doc>(col: Collection, doc: T | T[]) => Promise<void>;
@@ -37,6 +39,7 @@ export function rememberTrip(t: Trip) {
 export function TripProvider({ id, children }: { id: string; children: React.ReactNode }) {
   const [bundle, setBundle] = useState<TripBundle | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [locked, setLocked] = useState<string | null>(null);
   const [me, setMeState] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const pending = useRef(0);
@@ -50,7 +53,13 @@ export function TripProvider({ id, children }: { id: string; children: React.Rea
     try {
       const res = await fetch(`/api/trips/${id}`, { cache: "no-store" });
       if (res.status === 404) return setError("Este viaje no existe (o el link está mal copiado).");
+      if (res.status === 401) {
+        const body = await res.json();
+        setBundle(null);
+        return setLocked(body.name ?? "Viaje");
+      }
       if (!res.ok) throw new Error();
+      setLocked(null);
       const data = (await res.json()) as TripBundle;
       // Si hay cambios propios en vuelo, no los pisamos con datos viejos.
       if (pending.current === 0) setBundle(data);
@@ -85,6 +94,7 @@ export function TripProvider({ id, children }: { id: string; children: React.Rea
       pending.current++;
       try {
         const res = await request();
+        if (res.status === 401) setLocked(bundle?.trip.name ?? "Viaje");
         if (!res.ok) throw new Error();
       } catch {
         toast("No se pudo guardar. Revisá la conexión.");
@@ -93,7 +103,22 @@ export function TripProvider({ id, children }: { id: string; children: React.Rea
         if (pending.current === 0) refresh();
       }
     },
-    [refresh, toast],
+    [refresh, toast, bundle],
+  );
+
+  const unlock = useCallback(
+    async (pin: string) => {
+      const res = await fetch(`/api/trips/${id}/unlock`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin }),
+      }).catch(() => null);
+      if (!res) return "Sin conexión";
+      if (!res.ok) return ((await res.json()).error as string) ?? "No se pudo";
+      await refresh();
+      return null;
+    },
+    [id, refresh],
   );
 
   const save = useCallback(
@@ -157,7 +182,7 @@ export function TripProvider({ id, children }: { id: string; children: React.Rea
   );
 
   return (
-    <TripCtx.Provider value={{ bundle, error, me, setMe, save, remove, patchTrip, refresh, toast }}>
+    <TripCtx.Provider value={{ bundle, error, locked, unlock, me, setMe, save, remove, patchTrip, refresh, toast }}>
       {children}
       {toastMsg && (
         <div className="toast" role="status">

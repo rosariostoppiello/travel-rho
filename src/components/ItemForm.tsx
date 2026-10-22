@@ -5,6 +5,7 @@ import { CATEGORIES, CATEGORY_ORDER, TRANSPORT } from "@/lib/categories";
 import { docId } from "@/lib/id";
 import { dayLabel, daysBetween } from "@/lib/time";
 import type { Item, TransportMode } from "@/lib/types";
+import { AttachmentEditor, dropRemoved } from "./Attachments";
 import { CategoryIcon, IconClose, IconPlus } from "./Icons";
 import { PlacePicker } from "./PlacePicker";
 import { Sheet } from "./Sheet";
@@ -49,6 +50,7 @@ export function ItemForm({ item, onClose }: { item: Item | null; onClose: () => 
     const pendingLink = linkUrl.trim()
       ? [{ label: linkLabel.trim() || "Link", url: /^https?:\/\//.test(linkUrl) ? linkUrl.trim() : `https://${linkUrl.trim()}` }]
       : [];
+    dropRemoved(trip.id, item?.files, draft.files);
     save("items", {
       ...draft,
       title: draft.title.trim() || draft.place!.name,
@@ -72,6 +74,7 @@ export function ItemForm({ item, onClose }: { item: Item | null; onClose: () => 
               onClick={() => {
                 if (confirm("¿Borrar esta actividad?")) {
                   remove("items", draft.id);
+                  dropRemoved(trip.id, item?.files, []);
                   onClose();
                 }
               }}
@@ -204,6 +207,12 @@ export function ItemForm({ item, onClose }: { item: Item | null; onClose: () => 
             <IconPlus size={18} />
           </button>
         </div>
+      </div>
+
+      <div className="field">
+        <span>Archivos</span>
+        <AttachmentEditor files={draft.files ?? []} onChange={(files) => set({ files })} />
+        <p className="hint">QR de la reserva, entradas, voucher del hotel. Sólo los ve quien entra al viaje.</p>
       </div>
 
       <div className="grid2">

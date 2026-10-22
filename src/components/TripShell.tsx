@@ -15,10 +15,11 @@ const TABS = [
 ];
 
 export function TripShell({ id, children }: { id: string; children: React.ReactNode }) {
-  const { bundle, error, me } = useTrip();
+  const { bundle, error, me, locked } = useTrip();
   const path = usePathname();
   const base = `/t/${id}`;
 
+  if (locked) return <PinScreen name={locked} />;
   if (error && !bundle) {
     return (
       <main className="center-screen">
@@ -78,6 +79,43 @@ function WhoAreYou() {
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder={trip.members.length ? "Otra persona" : "Tu nombre"} />
         <button className="btn primary">Entrar</button>
       </form>
+    </main>
+  );
+}
+
+function PinScreen({ name }: { name: string }) {
+  const { unlock } = useTrip();
+  const [pin, setPin] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  return (
+    <main className="center-screen welcome">
+      <p className="eyebrow">Viaje protegido</p>
+      <h1 className="display">{name}</h1>
+      <p className="muted">Ingresá el PIN del viaje. Se pide una sola vez en este dispositivo.</p>
+      <form
+        className="row"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setBusy(true);
+          setErr(await unlock(pin));
+          setBusy(false);
+        }}
+      >
+        <input
+          className="pin-input mono"
+          value={pin}
+          onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 8))}
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          autoFocus
+          placeholder="••••"
+        />
+        <button className="btn primary" disabled={busy || pin.length < 4}>
+          Entrar
+        </button>
+      </form>
+      {err && <p className="hint err">{err}</p>}
     </main>
   );
 }

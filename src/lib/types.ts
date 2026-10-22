@@ -23,6 +23,13 @@ export interface Place {
   mapsUrl?: string;
 }
 
+export interface Attachment {
+  id: string;
+  name: string;
+  type: string; // MIME
+  size: number;
+}
+
 export interface Trip {
   id: string;
   name: string;
@@ -33,6 +40,8 @@ export interface Trip {
   lat?: number; // para el clima
   lng?: number;
   createdAt: number;
+  pinHash?: string; // sólo en el servidor; al cliente le llega hasPin
+  hasPin?: boolean;
 }
 
 export interface Item {
@@ -45,6 +54,7 @@ export interface Item {
   place?: Place;
   transport?: { mode: TransportMode; from?: string; to?: string };
   links: Link[];
+  files?: Attachment[];
   notes?: string;
   cost?: string;
   updatedBy?: string;
@@ -77,6 +87,7 @@ export interface Note {
   title: string;
   body: string;
   links: Link[];
+  files?: Attachment[];
   pinned?: boolean;
   updatedAt: number;
 }

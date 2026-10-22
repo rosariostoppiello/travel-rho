@@ -44,6 +44,13 @@ export const IconShare = ({ size = 18, className }: P) =>
 export const IconDirections = ({ size = 16, className }: P) =>
   svg(size, className, <><path d="m12 3 9 9-9 9-9-9 9-9Z" /><path d="M9.5 13.5V11h5M12.5 8.5 15 11l-2.5 2.5" /></>);
 
+export const IconPaperclip = ({ size = 16, className }: P) =>
+  svg(size, className, <path d="m20 11.5-8.3 8.3a5 5 0 0 1-7.1-7.1l8.6-8.6a3.4 3.4 0 0 1 4.8 4.8l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8" />);
+export const IconFile = ({ size = 16, className }: P) =>
+  svg(size, className, <><path d="M14 3.5H7.5A1.5 1.5 0 0 0 6 5v14a1.5 1.5 0 0 0 1.5 1.5h9A1.5 1.5 0 0 0 18 19V7.5l-4-4Z" /><path d="M14 3.5v4h4M9 13h6M9 16.5h4" /></>);
+export const IconLock = ({ size = 16, className }: P) =>
+  svg(size, className, <><rect x="5" y="10.5" width="14" height="10" rx="2" /><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3" /></>);
+
 export function CategoryIcon({ c, size = 16 }: { c: Category; size?: number }) {
   const paths: Record<Category, React.ReactNode> = {
     comida: <><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10" /><path d="M17 21V3c-2 1.5-3 4-3 7h3" /></>,

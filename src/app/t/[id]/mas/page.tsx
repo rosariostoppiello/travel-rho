@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { IconLink, IconPlus, IconShare } from "@/components/Icons";
+import { AttachmentEditor, AttachmentList, dropRemoved } from "@/components/Attachments";
+import { IconLink, IconLock, IconPlus, IconShare } from "@/components/Icons";
 import { Sheet } from "@/components/Sheet";
 import { useTrip } from "@/components/TripProvider";
 import { ars, useDolar } from "@/components/useDolar";
@@ -248,7 +249,7 @@ function Notes() {
   const notes = [...bundle!.notes].sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || b.updatedAt - a.updatedAt);
   return (
     <section className="stack">
-      <p className="muted small">Vuelos, check-in, entradas, la dirección del hotel, el wifi. Todo lo que hay que tener a mano.</p>
+      <p className="muted small">Vuelos, check-in, entradas, la dirección del hotel, el wifi. Podés adjuntar fotos y PDFs.</p>
       <button className="btn primary" onClick={() => setEditing({ id: docId(), title: "", body: "", links: [], updatedAt: Date.now() })}>
         <IconPlus size={18} /> Nueva nota
       </button>
@@ -258,6 +259,7 @@ function Notes() {
             {n.pinned && <span className="tag">fijada</span>} {n.title || "Sin título"}
           </h3>
           {n.body && <p className="notes">{n.body}</p>}
+          {n.files && n.files.length > 0 && <AttachmentList files={n.files} />}
           {n.links.length > 0 && (
             <div className="actions">
               {n.links.map((l, i) => (
@@ -295,6 +297,8 @@ function NoteForm({
   onSave: (n: Note) => void;
   onDelete: () => void;
 }) {
+  const { bundle } = useTrip();
+  const tripId = bundle!.trip.id;
   const [d, setD] = useState(note);
   const [url, setUrl] = useState("");
   const withPending = () => {
@@ -315,14 +319,18 @@ function NoteForm({
       footer={
         <>
           {exists && (
-            <button className="btn ghost danger" onClick={() => confirm("¿Borrar la nota?") && (onDelete(), onClose())}>
+            <button
+              className="btn ghost danger"
+              onClick={() => confirm("¿Borrar la nota?") && (onDelete(), dropRemoved(tripId, note.files, []), onClose())}
+            >
               Borrar
             </button>
           )}
           <button
             className="btn primary grow"
             onClick={() => {
-              if (!d.title.trim() && !d.body.trim()) return onClose();
+              if (!d.title.trim() && !d.body.trim() && !d.files?.length) return onClose();
+              dropRemoved(tripId, note.files, d.files);
               onSave({ ...d, links: withPending(), updatedAt: Date.now() });
               onClose();
             }}
@@ -365,6 +373,10 @@ function NoteForm({
           </button>
         </div>
       </div>
+      <div className="field">
+        <span>Archivos</span>
+        <AttachmentEditor files={d.files ?? []} onChange={(files) => setD({ ...d, files })} />
+      </div>
       <label className="toggle">
         <input type="checkbox" checked={!!d.pinned} onChange={(e) => setD({ ...d, pinned: e.target.checked })} />
         Fijar arriba
@@ -398,7 +410,11 @@ function Settings() {
     <section className="stack">
       <div className="card share">
         <span className="eyebrow">Compartir</span>
-        <p>Cualquiera con este link puede ver y editar el viaje. Mandalo sólo a quienes viajan.</p>
+        <p>
+          {trip.hasPin
+            ? "Con este link y el PIN se puede ver y editar el viaje."
+            : "Cualquiera con este link puede ver y editar el viaje. Mandalo sólo a quienes viajan."}
+        </p>
         <code className="link-box">{link}</code>
         <div className="row">
           <button className="btn primary grow" onClick={share}>
@@ -409,6 +425,8 @@ function Settings() {
           </a>
         </div>
       </div>
+
+      <PinCard />
 
       <div className="card">
         <span className="eyebrow">Quiénes viajan</span>
@@ -485,5 +503,67 @@ function Settings() {
         Todos mis viajes
       </Link>
     </section>
+  );
+}
+
+function PinCard() {
+  const { bundle, refresh, toast } = useTrip();
+  const { trip } = bundle!;
+  const [pin, setPin] = useState("");
+  const [editing, setEditing] = useState(false);
+
+  const send = async (value: string | null) => {
+    const res = await fetch(`/api/trips/${trip.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pin: value }),
+    }).catch(() => null);
+    if (!res?.ok) return toast((res && (await res.json()).error) || "No se pudo guardar");
+    toast(value ? "PIN guardado" : "PIN quitado");
+    setPin("");
+    setEditing(false);
+    refresh();
+  };
+
+  return (
+    <div className="card">
+      <span className="eyebrow">
+        <IconLock size={13} /> PIN del viaje
+      </span>
+      <p className="small muted">
+        {trip.hasPin
+          ? "Activado. Además del link hace falta el PIN, una vez por dispositivo. Pasáselo a tu gente por otro lado (en persona o por llamada)."
+          : "Sin PIN, cualquiera con el link entra. Si vas a subir reservas o documentos, poné uno."}
+      </p>
+      {trip.hasPin && !editing ? (
+        <div className="row">
+          <button className="btn grow" onClick={() => setEditing(true)}>
+            Cambiar PIN
+          </button>
+          <button className="btn ghost danger" onClick={() => confirm("¿Quitar el PIN?") && send(null)}>
+            Quitar
+          </button>
+        </div>
+      ) : (
+        <form
+          className="row"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (pin.length >= 4) send(pin);
+          }}
+        >
+          <input
+            className="mono"
+            value={pin}
+            onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 8))}
+            inputMode="numeric"
+            placeholder="4 a 8 números"
+          />
+          <button className="btn primary" disabled={pin.length < 4}>
+            {trip.hasPin ? "Cambiar" : "Activar"}
+          </button>
+        </form>
+      )}
+    </div>
   );
 }
