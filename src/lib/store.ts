@@ -25,7 +25,14 @@ function redisBackend(): Backend | null {
   return {
     get: (k) => r.get<string>(k),
     set: async (k, v) => void (await r.set(k, v)),
-    hgetall: async (k) => (await r.hgetall<Record<string, string>>(k)) ?? {},
+    // Sin deserialización automática, HGETALL llega como [campo, valor, campo, valor…].
+    hgetall: async (k) => {
+      const raw = (await r.hgetall(k)) as unknown as string[] | Record<string, string> | null;
+      if (!Array.isArray(raw)) return raw ?? {};
+      const out: Record<string, string> = {};
+      for (let i = 0; i < raw.length; i += 2) out[raw[i]] = raw[i + 1];
+      return out;
+    },
     hset: async (k, f, v) => void (await r.hset(k, { [f]: v })),
     hdel: async (k, f) => void (await r.hdel(k, f)),
     incr: async (k, ttl) => {
